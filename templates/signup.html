@@ -198,10 +198,9 @@
       $('#signupForm').on('submit', function (e) {
         e.preventDefault();
 
-        // Show spinner and hide text
         $('#signup-spinner').removeClass('d-none');
         $('#signup-text').text('Loading...').removeClass('invisible').addClass('ms-4');
-        $('#signup-btn').prop('disabled', true); // Disable button to prevent multiple submissions
+        $('#signup-btn').prop('disabled', true);
 
         let fromData = new FormData(this);
 
@@ -220,11 +219,10 @@
                 title: 'Account Created.',
                 text: 'Please check your email to verify your account.',
                 icon: 'success',
-                showConfirmButton: true, // Show a button for user to click
+                showConfirmButton: true,
                 confirmButtonText: 'OK'
               }).then((result) => {
                 if (result.isConfirmed) {
-                  // Redirect to the next URL provided by the server
                   window.location.href = response.next_url;
                 }
               });

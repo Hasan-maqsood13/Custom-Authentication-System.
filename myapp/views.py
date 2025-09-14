@@ -27,6 +27,8 @@ import json
 import re
 
 # Create your views here.
+
+
 def generate_verification_code(length=8):
     """Generate a random 4-digit numeric code"""
     return str(random.randint(1000, 9999))
@@ -145,29 +147,76 @@ def verifyemail(request):
     return render(request, 'verifyemail.html')
 
 # Add this view for resending verification codes
+
+
 def resend_verification(request):
     if request.method == 'POST':
         user_id = request.session.get('user_id')
         if not user_id:
             return JsonResponse({'success': False, 'message': 'Session expired.'})
-        
+
         try:
             user = User.objects.get(id=user_id)
             new_code = generate_verification_code()
             user.verification_token = new_code
             user.save()
-            
+
             # In a real application, you would send the email here
             # send_mail(...)
-            
+
             return JsonResponse({'success': True, 'message': 'New verification code sent.'})
         except User.DoesNotExist:
             return JsonResponse({'success': False, 'message': 'User not found.'})
-    
+
     return JsonResponse({'success': False, 'message': 'Invalid request.'})
 
 
 def login(request):
+    if request.method == 'POST':
+        email = request.POST.get('email')
+        password = request.POST.get('password')
+
+        try:
+            user = User.objects.get(email=email)
+
+            if check_password(password, user.password):
+                # Check if user is verified
+                if not user.is_verified:
+                    return JsonResponse({
+                        'success': False,
+                        'message': 'Please verify your email before logging in.'
+                    })
+
+                # Check if user is active
+                if not user.is_active:
+                    return JsonResponse({
+                        'success': False,
+                        'message': 'Your account has been deactivated. Please contact administrator.'
+                    })
+
+                # Update last login
+                user.last_login = timezone.now()
+                user.save()
+
+                # Set session
+                request.session['user_id'] = user.id
+                request.session['username'] = user.username
+                request.session['role'] = user.role
+
+                next_url = "/myapp/dashboard"
+
+                return JsonResponse({'success': True, 'next_url': next_url})
+            else:
+                return JsonResponse({
+                    'success': False,
+                    'message': 'Invalid username or password.'
+                })
+
+        except User.DoesNotExist:
+            return JsonResponse({
+                'success': False,
+                'message': 'Invalid username or password.'
+            })
     return render(request, 'login.html')
 
 
@@ -177,3 +226,7 @@ def forgotpassword(request):
 
 def resetpassword(request):
     return render(request, 'resetpassword.html')
+
+
+def dashboard(request):
+    return render(request, 'dashboard.html')

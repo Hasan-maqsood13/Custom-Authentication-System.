@@ -9,4 +9,5 @@ urlpatterns = [
     path('resend-verification/', views.resend_verification, name='resend_verification'),
     path('forgot-password/', views.forgotpassword, name="forgotpassword"),
     path('reset-password/', views.resetpassword, name="resetpassword"),
+    path('dashboard/', views.dashboard, name="dashboard"),
 ]
